@@ -13,13 +13,14 @@ interface PlatformMesh extends THREE.Mesh {
 const Game: React.FC = () => {
   const mountRef = useRef<HTMLDivElement>(null);
   const [gameStarted, setGameStarted] = useState(false);
+  const [currentLevel, setCurrentLevel] = useState(1);
   const state = useRef<GameState>({
     lives: 3,
     score: 0,
     playerPosition: { x: 0, y: 1, z: 0 },
   });
-  const levelRef = useRef<number>(1); // Текущий уровень (1 или 2)
-  const { play, stop } = useGameSound(levelRef.current);
+  const levelRef = useRef<number>(1);
+  const { play, stop } = useGameSound(currentLevel);
 
   useEffect(() => {
     if (!gameStarted) return;
@@ -84,6 +85,10 @@ const Game: React.FC = () => {
       coins.forEach((coin) => scene.remove(coin));
       platforms.length = 0;
       coins.length = 0;
+
+      // Обновляем уровень в состоянии
+      setCurrentLevel(level);
+      levelRef.current = level;
 
       // Запускаем музыку для соответствующего уровня
       stop();
