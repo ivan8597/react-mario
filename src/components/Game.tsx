@@ -3,7 +3,6 @@ import * as THREE from 'three';
 import { gsap } from 'gsap';
 import { GameState } from '../types';
 import StartScreen from './StartScreen';
-import { useGameSound } from '../hooks/useGameSound';
 
 // Расширяем типы для THREE.Mesh, чтобы включить BoxGeometry
 interface PlatformMesh extends THREE.Mesh {
@@ -13,27 +12,23 @@ interface PlatformMesh extends THREE.Mesh {
 const Game: React.FC = () => {
   const mountRef = useRef<HTMLDivElement>(null);
   const [gameStarted, setGameStarted] = useState(false);
-  const [currentLevel, setCurrentLevel] = useState(1);
   const state = useRef<GameState>({
     lives: 3,
     score: 0,
     playerPosition: { x: 0, y: 1, z: 0 },
   });
-  const levelRef = useRef<number>(1);
-  const { play, stop } = useGameSound(currentLevel);
+  const levelRef = useRef<number>(1); // Текущий уровень (1 или 2)
 
   useEffect(() => {
     if (!gameStarted) return;
-
-    // Сохраняем ссылку на DOM элемент
-    const mountElement = mountRef.current;
-
+    
     // Сцена
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight);
-    mountElement?.appendChild(renderer.domElement);
+    renderer.setClearColor(0x87CEEB); // Добавляем голубое небо
+    mountRef.current?.appendChild(renderer.domElement);
 
     // Освещение
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
@@ -51,8 +46,16 @@ const Game: React.FC = () => {
     // Платформы и монеты
     const platforms: PlatformMesh[] = [];
     const coins: THREE.Mesh[] = [];
-    const platformMaterial = new THREE.MeshPhongMaterial({ color: 0x00ff00 });
-    const coinMaterial = new THREE.MeshPhongMaterial({ color: 0xffff00 });
+    const platformMaterial = new THREE.MeshPhongMaterial({ 
+      color: 0x00ff00,
+      shininess: 30
+    });
+    const coinMaterial = new THREE.MeshPhongMaterial({ 
+      color: 0xffff00,
+      shininess: 100,
+      emissive: 0xffff00,
+      emissiveIntensity: 0.2
+    });
     const coinGeometry = new THREE.SphereGeometry(0.3, 32, 32);
 
     // Функция добавления платформы
@@ -86,13 +89,8 @@ const Game: React.FC = () => {
       platforms.length = 0;
       coins.length = 0;
 
-      // Обновляем уровень в состоянии
-      setCurrentLevel(level);
+      // Обновляем текущий уровень
       levelRef.current = level;
-
-      // Запускаем музыку для соответствующего уровня
-      stop();
-      play();
 
       if (level === 1) {
         // Уровень 1 (оригинальный)
@@ -143,7 +141,8 @@ const Game: React.FC = () => {
 
     // Управление
     const keys = { left: false, right: false, up: false, down: false, forward: false, backward: false, jump: false };
-    document.addEventListener('keydown', (e) => {
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft') keys.left = true;
       if (e.key === 'ArrowRight') keys.right = true;
       if (e.key === 'ArrowUp') keys.up = true;
@@ -154,9 +153,16 @@ const Game: React.FC = () => {
         keys.jump = true;
         isJumping = true;
         velocityY = 0.5;
-      }   
-    });
-    document.addEventListener('keyup', (e) => {
+      }
+      
+      // Добавляем клавишу для тестирования смены уровня
+      if (e.key === 'l' || e.key === 'L') {
+        const nextLevel = levelRef.current === 1 ? 2 : 1;
+        loadLevel(nextLevel);
+      }
+    };
+    
+    const handleKeyUp = (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft') keys.left = false;
       if (e.key === 'ArrowRight') keys.right = false;
       if (e.key === 'ArrowUp') keys.up = false;
@@ -164,7 +170,10 @@ const Game: React.FC = () => {
       if (e.key === 'w' || e.key === 'W') keys.forward = false;
       if (e.key === 's' || e.key === 'S') keys.backward = false;
       if (e.key === ' ') keys.jump = false;
-    });
+    };
+    
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
 
     // UI
     const ui = document.createElement('div');
@@ -174,6 +183,7 @@ const Game: React.FC = () => {
     ui.style.color = 'white';
     ui.style.fontFamily = 'Arial';
     ui.style.fontSize = '20px';
+    ui.style.textShadow = '2px 2px 2px rgba(0, 0, 0, 0.5)';
     document.body.appendChild(ui);
 
     // Функция поиска текущей платформы
@@ -260,27 +270,27 @@ const Game: React.FC = () => {
       }
 
       // Сбор монет
-      coins.forEach((coin, index) => {
+      for (let i = coins.length - 1; i >= 0; i--) {
+        const coin = coins[i];
         const coinBox = new THREE.Box3().setFromObject(coin);
         const playerBox = new THREE.Box3().setFromObject(player);
         if (playerBox.intersectsBox(coinBox)) {
           state.current.score += 10;
           scene.remove(coin);
-          coins.splice(index, 1);
+          coins.splice(i, 1);
+          
+          // Переход на новый уровень, если все монеты собраны
+          if (coins.length === 0 && levelRef.current === 1) {
+            console.log('Все монеты собраны, переходим на уровень 2');
+            loadLevel(2);
+          }
         }
-      });
-
-      // Переход на новый уровень, если все монеты собраны
-      if (coins.length === 0 && levelRef.current === 1) {
-        levelRef.current = 2;
-        loadLevel(2);
       }
 
       // Обновление UI
-      if (coins.length === 0) {
-        ui.textContent = `Вы Молодец! Lives: ${state.current.lives} | Score: ${state.current.score} | Level: ${levelRef.current}`;
-      } else {
-        ui.textContent = `Lives: ${state.current.lives} | Score: ${state.current.score} | Level: ${levelRef.current}`;
+      ui.textContent = `Жизни: ${state.current.lives} | Очки: ${state.current.score} | Уровень: ${levelRef.current}`;
+      if (coins.length === 0 && levelRef.current === 2) {
+        ui.textContent = `Вы Молодец! ${ui.textContent}`;
       }
 
       // Плавное слежение камеры
@@ -299,13 +309,12 @@ const Game: React.FC = () => {
 
     // Очистка
     return () => {
-      if (mountElement) {
-        mountElement.removeChild(renderer.domElement);
-      }
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
+      mountRef.current?.removeChild(renderer.domElement);
       document.body.removeChild(ui);
-      stop();
     };
-  }, [gameStarted, play, stop]);
+  }, [gameStarted]);
 
   const handleStartGame = () => {
     setGameStarted(true);
