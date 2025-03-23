@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { gsap } from 'gsap';
 import { GameState } from '../types';
 import StartScreen from './StartScreen';
+import { useGameSound } from '../hooks/useGameSound';
 
 // Расширяем типы для THREE.Mesh, чтобы включить BoxGeometry
 interface PlatformMesh extends THREE.Mesh {
@@ -18,9 +19,13 @@ const Game: React.FC = () => {
     playerPosition: { x: 0, y: 1, z: 0 },
   });
   const levelRef = useRef<number>(1); // Текущий уровень (1 или 2)
+  const { play, stop } = useGameSound(levelRef.current);
 
   useEffect(() => {
     if (!gameStarted) return;
+
+    // Запускаем музыку при старте игры
+    play();
 
     // Сцена
     const scene = new THREE.Scene();
@@ -287,8 +292,9 @@ const Game: React.FC = () => {
     return () => {
       mountRef.current?.removeChild(renderer.domElement);
       document.body.removeChild(ui);
+      stop(); // Останавливаем музыку при размонтировании
     };
-  }, [gameStarted]);
+  }, [gameStarted, play, stop]);
 
   const handleStartGame = () => {
     setGameStarted(true);
