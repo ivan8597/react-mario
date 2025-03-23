@@ -2,7 +2,7 @@
   "name": "react-mario",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://YOUR_GITHUB_USERNAME.github.io/react-mario",
+  "homepage": "https://ivan8597.github.io/react-mario",
   "dependencies": {
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",

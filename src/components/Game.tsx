@@ -24,9 +24,6 @@ const Game: React.FC = () => {
   useEffect(() => {
     if (!gameStarted) return;
 
-    // Запускаем музыку при старте игры
-    play();
-
     // Сцена
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -292,9 +289,8 @@ const Game: React.FC = () => {
     return () => {
       mountRef.current?.removeChild(renderer.domElement);
       document.body.removeChild(ui);
-      stop(); // Останавливаем музыку при размонтировании
     };
-  }, [gameStarted, play, stop]);
+  }, [gameStarted]);
 
   const handleStartGame = () => {
     setGameStarted(true);

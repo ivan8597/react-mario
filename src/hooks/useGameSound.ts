@@ -7,19 +7,31 @@ export function useGameSound(level: number) {
     // Создаем новый аудио элемент
     audioRef.current = new Audio();
     
+    // Добавляем базовый путь для GitHub Pages
+    const basePath = process.env.PUBLIC_URL || '';
+    
     // Выбираем музыку в зависимости от уровня
     if (level === 1) {
-      audioRef.current.src = '/sounds/Ventum-Day of joy.mp3';
+      audioRef.current.src = `${basePath}/sounds/level1.mp3`;
     } else if (level === 2) {
-      audioRef.current.src = '/sounds/Ventum-Call of the Sands.mp3';
+      audioRef.current.src = `${basePath}/sounds/level2.mp3`;
     }
 
     if (audioRef.current) {
       audioRef.current.loop = true; // Зацикливаем музыку
       audioRef.current.volume = 0.5; // Устанавливаем громкость на 50%
-      audioRef.current.play().catch(() => {
-        console.log('Автовоспроизведение заблокировано браузером. Нужно взаимодействие пользователя.');
-      });
+      
+      // Воспроизводим музыку только после взаимодействия пользователя
+      const playMusic = () => {
+        if (audioRef.current) {
+          audioRef.current.play().catch(() => {
+            console.log('Ошибка воспроизведения музыки');
+          });
+        }
+        document.removeEventListener('click', playMusic);
+      };
+      
+      document.addEventListener('click', playMusic);
     }
 
     // Очистка при размонтировании
@@ -32,7 +44,13 @@ export function useGameSound(level: number) {
   }, [level]);
 
   return {
-    play: () => audioRef.current?.play(),
+    play: () => {
+      if (audioRef.current) {
+        audioRef.current.play().catch(() => {
+          console.log('Требуется взаимодействие пользователя для воспроизведения музыки');
+        });
+      }
+    },
     pause: () => audioRef.current?.pause(),
     stop: () => {
       if (audioRef.current) {
