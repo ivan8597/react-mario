@@ -1,30 +1,29 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 
 export function useGameSound(level: number) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Функция для создания и настройки аудио элемента
-  const setupAudio = () => {
+  // Используем useCallback для мемоизации функции setupAudio
+  const setupAudio = useCallback(() => {
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current = null;
     }
 
     audioRef.current = new Audio();
-    const basePath = process.env.PUBLIC_URL || '';
     
     // Выбираем разную музыку для каждого уровня
     if (level === 1) {
-      audioRef.current.src = `${basePath}/sounds/Ventum-Day of joy.mp3`;
+      audioRef.current.src = '/react-mario/sounds/Ventum-Day of joy.mp3';
     } else if (level === 2) {
-      audioRef.current.src = `${basePath}/sounds/Ventum-Call of the Sands.mp3`;
+      audioRef.current.src = '/react-mario/sounds/Ventum-Call of the Sands.mp3';
     }
 
     if (audioRef.current) {
       audioRef.current.loop = true;
       audioRef.current.volume = 0.5;
     }
-  };
+  }, [level]); // Зависимость от level
 
   useEffect(() => {
     setupAudio();
@@ -34,7 +33,7 @@ export function useGameSound(level: number) {
         audioRef.current = null;
       }
     };
-  }, [level]);
+  }, [setupAudio]); 
 
   return {
     play: () => {
