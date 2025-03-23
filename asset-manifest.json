@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/react-mario/static/css/main.76487a85.css",
-    "main.js": "/react-mario/static/js/main.f87fc6c3.js",
+    "main.js": "/react-mario/static/js/main.1a651205.js",
     "index.html": "/react-mario/index.html",
     "main.76487a85.css.map": "/react-mario/static/css/main.76487a85.css.map",
-    "main.f87fc6c3.js.map": "/react-mario/static/js/main.f87fc6c3.js.map"
+    "main.1a651205.js.map": "/react-mario/static/js/main.1a651205.js.map"
   },
   "entrypoints": [
     "static/css/main.76487a85.css",
-    "static/js/main.f87fc6c3.js"
+    "static/js/main.1a651205.js"
   ]
 }
