@@ -15,9 +15,9 @@ export function useGameSound(level: number) {
     
     // Выбираем музыку в зависимости от уровня
     if (level === 1) {
-      audioRef.current.src = `${basePath}/sounds/Ventum-Day of joy.mp3`;
+      audioRef.current.src = `${basePath}/react-mario/sounds/Ventum-Day of joy.mp3`;
     } else if (level === 2) {
-      audioRef.current.src = `${basePath}/sounds/Ventum-Call of the Sands.mp3`;
+      audioRef.current.src = `${basePath}/react-mario/sounds/Ventum-Call of the Sands.mp3`;
     }
 
     if (audioRef.current) {
