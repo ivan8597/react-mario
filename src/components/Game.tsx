@@ -24,12 +24,15 @@ const Game: React.FC = () => {
   useEffect(() => {
     if (!gameStarted) return;
 
+    // Сохраняем ссылку на DOM элемент
+    const mountElement = mountRef.current;
+
     // Сцена
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight);
-    mountRef.current?.appendChild(renderer.domElement);
+    mountElement?.appendChild(renderer.domElement);
 
     // Освещение
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
@@ -81,6 +84,10 @@ const Game: React.FC = () => {
       coins.forEach((coin) => scene.remove(coin));
       platforms.length = 0;
       coins.length = 0;
+
+      // Запускаем музыку для соответствующего уровня
+      stop();
+      play();
 
       if (level === 1) {
         // Уровень 1 (оригинальный)
@@ -287,10 +294,13 @@ const Game: React.FC = () => {
 
     // Очистка
     return () => {
-      mountRef.current?.removeChild(renderer.domElement);
+      if (mountElement) {
+        mountElement.removeChild(renderer.domElement);
+      }
       document.body.removeChild(ui);
+      stop();
     };
-  }, [gameStarted]);
+  }, [gameStarted, play, stop]);
 
   const handleStartGame = () => {
     setGameStarted(true);
