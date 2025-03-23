@@ -12,16 +12,27 @@ export function useGameSound(level: number) {
 
     audioRef.current = new Audio();
     
-    // Выбираем разную музыку для каждого уровня
+    // Используем относительные пути без пробелов
     if (level === 1) {
-      audioRef.current.src = '/react-mario/sounds/Ventum-Day of joy.mp3';
+      audioRef.current.src = './sounds/level1.mp3';
+      console.log('Loading level 1 music:', audioRef.current.src);
     } else if (level === 2) {
-      audioRef.current.src = '/react-mario/sounds/Ventum-Call of the Sands.mp3';
+      audioRef.current.src = './sounds/level2.mp3';
+      console.log('Loading level 2 music:', audioRef.current.src);
     }
 
     if (audioRef.current) {
       audioRef.current.loop = true;
       audioRef.current.volume = 0.5;
+      
+      // Добавляем обработчики событий для отладки
+      audioRef.current.addEventListener('canplay', () => {
+        console.log('Audio can play now');
+      });
+      
+      audioRef.current.addEventListener('error', (e) => {
+        console.error('Audio error:', e);
+      });
     }
   }, [level]); // Зависимость от level
 
@@ -41,7 +52,16 @@ export function useGameSound(level: number) {
         setupAudio();
       }
       audioRef.current?.play().catch((error) => {
-        console.log('Ошибка воспроизведения музыки:', error);
+        console.error('Ошибка воспроизведения музыки:', error);
+        // Попробуем загрузить файл еще раз с другим путем
+        if (audioRef.current) {
+          const currentSrc = audioRef.current.src;
+          if (currentSrc.includes('./sounds/')) {
+            audioRef.current.src = currentSrc.replace('./sounds/', '/sounds/');
+            console.log('Trying alternative path:', audioRef.current.src);
+            audioRef.current.play().catch(e => console.error('Still failed:', e));
+          }
+        }
       });
     },
     pause: () => {
